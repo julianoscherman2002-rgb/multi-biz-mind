@@ -61,11 +61,57 @@ const prioridadeCor: Record<Task["priority"], string> = {
 function Tarefas() {
   const { db, addTask, updateTask, removeTask } = useStore();
   const { companyId } = useWorkspace();
+  const [syncing, setSyncing] = useState<string | null>(null);
+
+  const agenda = useQuery({
+    queryKey: ["gcal-events"],
+    queryFn: () => listUpcomingEvents({ data: { days: 30 } }),
+    staleTime: 60_000,
+  });
 
   const tasks = useMemo(
     () => db.tasks.filter((t) => companyId === "all" || t.companyId === companyId),
     [db.tasks, companyId],
   );
+
+  async function sincronizar(t: Task) {
+    if (!t.due) {
+      toast.error("Defina um prazo para enviar ao Google Calendar.");
+      return;
+    }
+    setSyncing(t.id);
+    const res = await upsertTaskEvent({
+      data: {
+        title: t.title,
+        due: t.due,
+        ...(t.notes ? { notes: t.notes } : {}),
+        ...(t.gcalEventId ? { eventId: t.gcalEventId } : {}),
+      },
+    });
+    setSyncing(null);
+    if (res.error || !res.eventId) {
+      toast.error(res.error ?? "Não foi possível sincronizar.");
+      return;
+    }
+    updateTask(t.id, { gcalEventId: res.eventId, ...(res.htmlLink ? { gcalLink: res.htmlLink } : {}) });
+    toast.success("Tarefa enviada para o Google Calendar.");
+    agenda.refetch();
+  }
+
+  async function excluir(t: Task) {
+    if (t.gcalEventId) await deleteTaskEvent({ data: { eventId: t.gcalEventId } });
+    removeTask(t.id);
+    agenda.refetch();
+  }
+
+  async function sincronizarTodas() {
+    const pend = tasks.filter((t) => t.due && t.status !== "done");
+    if (pend.length === 0) {
+      toast.info("Nenhuma tarefa com prazo para sincronizar.");
+      return;
+    }
+    for (const t of pend) await sincronizar(t);
+  }
 
   return (
     <>
@@ -76,8 +122,16 @@ function Tarefas() {
             ? "Pendências de todas as empresas — use o workspace lateral para focar em uma"
             : `Workspace: ${db.companies.find((c) => c.id === companyId)?.name}`
         }
-        action={<NovaTarefa onAdd={addTask} />}
+        action={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={sincronizarTodas}>
+              <RefreshCw className="size-4" /> Sincronizar agenda
+            </Button>
+            <NovaTarefa onAdd={addTask} />
+          </div>
+        }
       />
+
 
       <div className="grid gap-5 md:grid-cols-3">
         {colunas.map((col) => {
