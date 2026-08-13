@@ -194,7 +194,7 @@ function Tarefas() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-3 flex gap-1.5">
+                      <div className="mt-3 flex flex-wrap gap-1.5">
                         {colunas
                           .filter((x) => x.key !== t.status)
                           .map((x) => (
@@ -208,6 +208,32 @@ function Tarefas() {
                               → {x.label}
                             </Button>
                           ))}
+                        {t.due && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-xs"
+                            disabled={syncing === t.id}
+                            onClick={() => sincronizar(t)}
+                          >
+                            {t.gcalEventId ? (
+                              <Check className="size-3" />
+                            ) : (
+                              <CalendarPlus className="size-3" />
+                            )}
+                            {t.gcalEventId ? "Na agenda" : "Google Calendar"}
+                          </Button>
+                        )}
+                        {t.gcalLink && (
+                          <a
+                            href={t.gcalLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex h-7 items-center gap-1 px-1 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            <ExternalLink className="size-3" /> abrir
+                          </a>
+                        )}
                       </div>
                     </article>
                   );
@@ -222,8 +248,51 @@ function Tarefas() {
           );
         })}
       </div>
+
+      <section className="surface mt-5 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg">Agenda do Google — próximos 30 dias</h2>
+            <p className="text-xs text-muted-foreground">
+              Eventos da sua conta Google conectada, ao lado das tarefas.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => agenda.refetch()}>
+            <RefreshCw className={cn("size-3.5", agenda.isFetching && "animate-spin")} /> Atualizar
+          </Button>
+        </div>
+        {agenda.data?.error && (
+          <p className="text-xs text-[var(--color-negative)]">{agenda.data.error}</p>
+        )}
+        {!agenda.data?.error && (agenda.data?.events.length ?? 0) === 0 && (
+          <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+            {agenda.isLoading ? "Carregando agenda..." : "Nenhum evento nos próximos 30 dias"}
+          </p>
+        )}
+        <ul className="divide-y divide-border">
+          {(agenda.data?.events ?? []).map((e) => (
+            <li key={e.id} className="flex items-center justify-between gap-3 py-2">
+              <span className="text-sm">{e.title}</span>
+              <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                {e.start &&
+                  new Date(e.allDay ? e.start + "T00:00:00" : e.start).toLocaleString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    ...(e.allDay ? {} : { hour: "2-digit", minute: "2-digit" }),
+                  })}
+                {e.htmlLink && (
+                  <a href={e.htmlLink} target="_blank" rel="noreferrer" className="hover:text-foreground">
+                    <ExternalLink className="size-3" />
+                  </a>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </>
   );
+
 }
 
 function NovaTarefa({ onAdd }: { onAdd: (t: Omit<Task, "id">) => void }) {
