@@ -43,7 +43,10 @@ export type Task = {
   due?: string;
   priority: "baixa" | "media" | "alta";
   status: "todo" | "doing" | "done";
+  gcalEventId?: string;
+  gcalLink?: string;
 };
+
 
 export type Record_ = {
   id: string;
