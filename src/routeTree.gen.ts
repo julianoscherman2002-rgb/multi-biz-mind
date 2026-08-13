@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CadastrosRouteImport } from './routes/cadastros'
 import { Route as ContasRouteImport } from './routes/contas'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as TarefasRouteImport } from './routes/tarefas'
@@ -17,6 +18,11 @@ import { Route as TarefasRouteImport } from './routes/tarefas'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastrosRoute = CadastrosRouteImport.update({
+  id: '/cadastros',
+  path: '/cadastros',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContasRoute = ContasRouteImport.update({
@@ -37,12 +43,14 @@ const TarefasRoute = TarefasRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cadastros': typeof CadastrosRoute
   '/contas': typeof ContasRoute
   '/financeiro': typeof FinanceiroRoute
   '/tarefas': typeof TarefasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastros': typeof CadastrosRoute
   '/contas': typeof ContasRoute
   '/financeiro': typeof FinanceiroRoute
   '/tarefas': typeof TarefasRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cadastros': typeof CadastrosRoute
   '/contas': typeof ContasRoute
   '/financeiro': typeof FinanceiroRoute
   '/tarefas': typeof TarefasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/contas' | '/financeiro' | '/tarefas'
+  fullPaths: '/' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/contas' | '/financeiro' | '/tarefas'
-  id: '__root__' | '/' | '/contas' | '/financeiro' | '/tarefas'
+  to: '/' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
+  id: '__root__' | '/' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CadastrosRoute: typeof CadastrosRoute
   ContasRoute: typeof ContasRoute
   FinanceiroRoute: typeof FinanceiroRoute
   TarefasRoute: typeof TarefasRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastros': {
+      id: '/cadastros'
+      path: '/cadastros'
+      fullPath: '/cadastros'
+      preLoaderRoute: typeof CadastrosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contas': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CadastrosRoute: CadastrosRoute,
   ContasRoute: ContasRoute,
   FinanceiroRoute: FinanceiroRoute,
   TarefasRoute: TarefasRoute,
