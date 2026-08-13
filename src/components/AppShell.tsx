@@ -7,6 +7,8 @@ import {
   Landmark,
   FolderKanban,
   Circle,
+  Sparkles,
+  ClipboardCheck,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -17,11 +19,14 @@ export const useWorkspace = () => useContext(Ctx);
 
 const nav = [
   { to: "/", label: "Visão geral", icon: LayoutDashboard },
+  { to: "/controle-geral", label: "Controle geral", icon: ClipboardCheck },
   { to: "/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/tarefas", label: "Tarefas", icon: ListChecks },
   { to: "/contas", label: "Contas", icon: Landmark },
   { to: "/cadastros", label: "Cadastros", icon: FolderKanban },
+  { to: "/assistente", label: "Assistente", icon: Sparkles },
 ] as const;
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { db } = useStore();
