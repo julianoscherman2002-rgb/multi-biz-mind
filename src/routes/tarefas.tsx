@@ -62,6 +62,9 @@ function Tarefas() {
   const { db, addTask, updateTask, removeTask } = useStore();
   const { companyId } = useWorkspace();
   const [syncing, setSyncing] = useState<string | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<Task["status"] | null>(null);
+
 
   const agenda = useQuery({
     queryKey: ["gcal-events"],
