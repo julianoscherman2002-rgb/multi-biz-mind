@@ -161,12 +161,13 @@ function Tarefas() {
                           {t.title}
                         </p>
                         <button
-                          onClick={() => removeTask(t.id)}
+                          onClick={() => excluir(t)}
                           className="text-muted-foreground transition-colors hover:text-destructive"
                           aria-label="Excluir tarefa"
                         >
                           <Trash2 className="size-3.5" />
                         </button>
+
                       </div>
                       {t.notes && <p className="mt-1 text-xs text-muted-foreground">{t.notes}</p>}
                       <div className="mt-2 flex flex-wrap items-center gap-2">
