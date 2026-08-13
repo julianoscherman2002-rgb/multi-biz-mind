@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as CadastrosRouteImport } from './routes/cadastros'
 import { Route as ContasRouteImport } from './routes/contas'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
@@ -18,6 +19,11 @@ import { Route as TarefasRouteImport } from './routes/tarefas'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AssistenteRoute = AssistenteRouteImport.update({
+  id: '/assistente',
+  path: '/assistente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastrosRoute = CadastrosRouteImport.update({
@@ -43,6 +49,7 @@ const TarefasRoute = TarefasRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
   '/cadastros': typeof CadastrosRoute
   '/contas': typeof ContasRoute
   '/financeiro': typeof FinanceiroRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
   '/cadastros': typeof CadastrosRoute
   '/contas': typeof ContasRoute
   '/financeiro': typeof FinanceiroRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
   '/cadastros': typeof CadastrosRoute
   '/contas': typeof ContasRoute
   '/financeiro': typeof FinanceiroRoute
@@ -65,14 +74,24 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
+  fullPaths:
+    '/' | '/assistente' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
-  id: '__root__' | '/' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
+  to:
+    '/' | '/assistente' | '/cadastros' | '/contas' | '/financeiro' | '/tarefas'
+  id:
+    | '__root__'
+    | '/'
+    | '/assistente'
+    | '/cadastros'
+    | '/contas'
+    | '/financeiro'
+    | '/tarefas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssistenteRoute: typeof AssistenteRoute
   CadastrosRoute: typeof CadastrosRoute
   ContasRoute: typeof ContasRoute
   FinanceiroRoute: typeof FinanceiroRoute
@@ -86,6 +105,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistente': {
+      id: '/assistente'
+      path: '/assistente'
+      fullPath: '/assistente'
+      preLoaderRoute: typeof AssistenteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastros': {
@@ -121,6 +147,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssistenteRoute: AssistenteRoute,
   CadastrosRoute: CadastrosRoute,
   ContasRoute: ContasRoute,
   FinanceiroRoute: FinanceiroRoute,
