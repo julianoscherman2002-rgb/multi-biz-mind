@@ -140,20 +140,56 @@ function Tarefas() {
         {colunas.map((col) => {
           const list = tasks.filter((t) => t.status === col.key);
           return (
-            <section key={col.key} className="surface flex flex-col p-4">
+            <section
+              key={col.key}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setOverCol(col.key);
+              }}
+              onDragLeave={() => setOverCol((c) => (c === col.key ? null : c))}
+              onDrop={(e) => {
+                e.preventDefault();
+                setOverCol(null);
+                const id = dragId ?? e.dataTransfer.getData("text/plain");
+                setDragId(null);
+                const t = db.tasks.find((x) => x.id === id);
+                if (t && t.status !== col.key) updateTask(id, { status: col.key });
+              }}
+              className={cn(
+                "surface flex flex-col p-4 transition-colors",
+                overCol === col.key && "ring-2 ring-primary/60",
+              )}
+            >
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="font-display text-lg">{col.label}</h2>
                 <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                   {list.length}
                 </span>
               </div>
-              <div className="space-y-3">
+              <div className="min-h-24 space-y-3">
                 {list.map((t) => {
                   const c = db.companies.find((x) => x.id === t.companyId);
                   const atrasada =
                     t.due && t.status !== "done" && t.due < new Date().toISOString().slice(0, 10);
                   return (
-                    <article key={t.id} className="rounded-xl border border-border bg-background p-3">
+                    <article
+                      key={t.id}
+                      draggable
+                      onDragStart={(e) => {
+                        setDragId(t.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", t.id);
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setOverCol(null);
+                      }}
+                      className={cn(
+                        "cursor-grab rounded-xl border border-border bg-background p-3 active:cursor-grabbing",
+                        dragId === t.id && "opacity-40",
+                      )}
+                    >
+
                       <div className="flex items-start justify-between gap-2">
                         <p
                           className={cn(
