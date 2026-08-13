@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, CalendarClock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, Trash2, CalendarClock, CalendarPlus, RefreshCw, ExternalLink, Check } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, PageHeader, useWorkspace } from "@/components/AppShell";
 import { useStore, type Task } from "@/lib/store";
+import { listUpcomingEvents, upsertTaskEvent, deleteTaskEvent } from "@/lib/calendar.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/tarefas")({
   head: () => ({
