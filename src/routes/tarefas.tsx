@@ -1,0 +1,263 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Plus, Trash2, CalendarClock } from "lucide-react";
+import { toast } from "sonner";
+import { AppShell, PageHeader, useWorkspace } from "@/components/AppShell";
+import { useStore, type Task } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/tarefas")({
+  head: () => ({
+    meta: [
+      { title: "Tarefas por empresa — Órbita" },
+      { name: "description", content: "Workspace de pendências separado por empresa, com prazos e prioridades." },
+      { property: "og:title", content: "Tarefas por empresa — Órbita" },
+      { property: "og:description", content: "Kanban de pendências por empresa." },
+    ],
+  }),
+  component: () => (
+    <AppShell>
+      <Tarefas />
+    </AppShell>
+  ),
+});
+
+const colunas: { key: Task["status"]; label: string }[] = [
+  { key: "todo", label: "A fazer" },
+  { key: "doing", label: "Em andamento" },
+  { key: "done", label: "Concluído" },
+];
+
+const prioridadeCor: Record<Task["priority"], string> = {
+  alta: "var(--color-negative)",
+  media: "var(--color-brand-3)",
+  baixa: "var(--color-brand-2)",
+};
+
+function Tarefas() {
+  const { db, addTask, updateTask, removeTask } = useStore();
+  const { companyId } = useWorkspace();
+
+  const tasks = useMemo(
+    () => db.tasks.filter((t) => companyId === "all" || t.companyId === companyId),
+    [db.tasks, companyId],
+  );
+
+  return (
+    <>
+      <PageHeader
+        title="Tarefas"
+        subtitle={
+          companyId === "all"
+            ? "Pendências de todas as empresas — use o workspace lateral para focar em uma"
+            : `Workspace: ${db.companies.find((c) => c.id === companyId)?.name}`
+        }
+        action={<NovaTarefa onAdd={addTask} />}
+      />
+
+      <div className="grid gap-5 md:grid-cols-3">
+        {colunas.map((col) => {
+          const list = tasks.filter((t) => t.status === col.key);
+          return (
+            <section key={col.key} className="surface flex flex-col p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="font-display text-lg">{col.label}</h2>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  {list.length}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {list.map((t) => {
+                  const c = db.companies.find((x) => x.id === t.companyId);
+                  const atrasada =
+                    t.due && t.status !== "done" && t.due < new Date().toISOString().slice(0, 10);
+                  return (
+                    <article key={t.id} className="rounded-xl border border-border bg-background p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <p
+                          className={cn(
+                            "text-sm font-medium leading-snug",
+                            t.status === "done" && "text-muted-foreground line-through",
+                          )}
+                        >
+                          {t.title}
+                        </p>
+                        <button
+                          onClick={() => removeTask(t.id)}
+                          className="text-muted-foreground transition-colors hover:text-destructive"
+                          aria-label="Excluir tarefa"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                      {t.notes && <p className="mt-1 text-xs text-muted-foreground">{t.notes}</p>}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary" className="gap-1.5 font-normal">
+                          <span className="size-2 rounded-full" style={{ background: c?.accent }} />
+                          {c?.name}
+                        </Badge>
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+                          style={{
+                            color: prioridadeCor[t.priority],
+                            background: "color-mix(in oklab, currentColor 12%, transparent)",
+                          }}
+                        >
+                          {t.priority}
+                        </span>
+                        {t.due && (
+                          <span
+                            className="flex items-center gap-1 text-[11px]"
+                            style={{ color: atrasada ? "var(--color-negative)" : undefined }}
+                          >
+                            <CalendarClock className="size-3" />
+                            {new Date(t.due + "T00:00:00").toLocaleDateString("pt-BR")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-3 flex gap-1.5">
+                        {colunas
+                          .filter((x) => x.key !== t.status)
+                          .map((x) => (
+                            <Button
+                              key={x.key}
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => updateTask(t.id, { status: x.key })}
+                            >
+                              → {x.label}
+                            </Button>
+                          ))}
+                      </div>
+                    </article>
+                  );
+                })}
+                {list.length === 0 && (
+                  <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                    Nada aqui
+                  </p>
+                )}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function NovaTarefa({ onAdd }: { onAdd: (t: Omit<Task, "id">) => void }) {
+  const { db } = useStore();
+  const { companyId } = useWorkspace();
+  const [open, setOpen] = useState(false);
+  const [empresa, setEmpresa] = useState(companyId === "all" ? db.companies[0]!.id : companyId);
+  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [due, setDue] = useState("");
+  const [priority, setPriority] = useState<Task["priority"]>("media");
+
+  function submit() {
+    if (!title.trim()) {
+      toast.error("Dê um título para a tarefa.");
+      return;
+    }
+    onAdd({
+      companyId: empresa,
+      title: title.trim(),
+      priority,
+      status: "todo",
+      ...(notes ? { notes } : {}),
+      ...(due ? { due } : {}),
+    });
+    toast.success("Tarefa criada.");
+    setTitle("");
+    setNotes("");
+    setDue("");
+    setOpen(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="size-4" /> Nova tarefa
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nova tarefa</DialogTitle>
+          <DialogDescription>Ela ficará no workspace da empresa escolhida.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label>Título</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Protocolar recurso..." />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-2">
+              <Label>Empresa</Label>
+              <Select value={empresa} onValueChange={setEmpresa}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {db.companies.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Prioridade</Label>
+              <Select value={priority} onValueChange={(v) => setPriority(v as Task["priority"])}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Prazo</Label>
+              <Input type="date" value={due} onChange={(e) => setDue(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label>Notas</Label>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={submit}>Criar tarefa</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
