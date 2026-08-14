@@ -64,11 +64,10 @@ function Financeiro() {
   const entradas = list.filter((t) => t.type === "in").reduce((s, t) => s + t.amount, 0);
   const saidas = list.filter((t) => t.type === "out").reduce((s, t) => s + t.amount, 0);
 
-  function handleCsv(file: File) {
+  function handleFile(file: File) {
     const reader = new FileReader();
     reader.onload = () => {
       const text = String(reader.result ?? "");
-      const rows = text.split(/\r?\n/).filter((r) => r.trim());
       const targetCompany = companyId === "all" ? db.companies[0]!.id : companyId;
       const account =
         db.accounts.find((a) => a.companyId === targetCompany) ?? db.accounts[0];
@@ -76,27 +75,22 @@ function Financeiro() {
         toast.error("Cadastre uma conta bancária antes de importar.");
         return;
       }
-      const parsed: Omit<Transaction, "id">[] = [];
-      for (const [i, row] of rows.entries()) {
-        const cols = row.split(/[;,\t]/).map((c) => c.trim().replace(/^"|"$/g, ""));
-        if (cols.length < 3) continue;
-        const [dateRaw, desc, valueRaw] = cols;
-        if (i === 0 && !/\d/.test(dateRaw ?? "")) continue; // cabeçalho
-        const date = normalizeDate(dateRaw ?? "");
-        const value = parseValue(valueRaw ?? "");
-        if (!date || Number.isNaN(value) || value === 0) continue;
-        parsed.push({
+      const isOfx = /\.ofx$/i.test(file.name) || /<STMTTRN>/i.test(text);
+      const raw: RawTx[] = isOfx ? parseOfx(text) : parseCsv(text);
+      const parsed: Omit<Transaction, "id">[] = raw.map((r) => {
+        const { type, amount } = resolveDirection(r.description, r.amount);
+        return {
           companyId: targetCompany,
           accountId: account.id,
-          date,
-          description: desc || "Importado",
-          category: "Importado",
-          type: value >= 0 ? "in" : "out",
-          amount: Math.abs(value),
-        });
-      }
+          date: r.date,
+          description: r.description,
+          category: r.category,
+          type,
+          amount,
+        };
+      });
       if (parsed.length === 0) {
-        toast.error("Nenhuma linha válida encontrada. Use: data;descrição;valor");
+        toast.error("Nenhuma linha válida encontrada. Use CSV (data;descrição;valor) ou OFX.");
         return;
       }
       addTransactions(parsed);
@@ -104,6 +98,23 @@ function Financeiro() {
     };
     reader.readAsText(file);
   }
+
+  function parseCsv(text: string): RawTx[] {
+    const rows = text.split(/\r?\n/).filter((r) => r.trim());
+    const out: RawTx[] = [];
+    for (const [i, row] of rows.entries()) {
+      const cols = row.split(/[;,\t]/).map((c) => c.trim().replace(/^"|"$/g, ""));
+      if (cols.length < 3) continue;
+      const [dateRaw, desc, valueRaw] = cols;
+      if (i === 0 && !/\d/.test(dateRaw ?? "")) continue; // cabeçalho
+      const date = normalizeDate(dateRaw ?? "");
+      const value = parseValue(valueRaw ?? "");
+      if (!date || Number.isNaN(value) || value === 0) continue;
+      out.push(toRaw(date, desc || "Importado", value));
+    }
+    return out;
+  }
+
 
   return (
     <>
