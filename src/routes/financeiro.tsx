@@ -144,9 +144,10 @@ function Financeiro() {
         }
       />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Entradas" value={brlExact(entradas)} color="var(--color-positive)" />
         <Stat label="Saídas" value={brlExact(saidas)} color="var(--color-negative)" />
+        <Stat label="Investimentos" value={brlExact(investido)} />
         <Stat label="Resultado" value={brlExact(entradas - saidas)} />
       </div>
 
@@ -199,10 +200,15 @@ function Financeiro() {
                     <td
                       className="whitespace-nowrap px-5 py-2.5 text-right font-medium tabular-nums"
                       style={{
-                        color: t.type === "in" ? "var(--color-positive)" : "var(--color-negative)",
+                        color:
+                          t.type === "in"
+                            ? "var(--color-positive)"
+                            : t.type === "invest"
+                              ? "var(--color-muted-foreground)"
+                              : "var(--color-negative)",
                       }}
                     >
-                      {t.type === "in" ? "+" : "−"} {brlExact(t.amount)}
+                      {t.type === "in" ? "+" : t.type === "invest" ? "↔" : "−"} {brlExact(t.amount)}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <button
