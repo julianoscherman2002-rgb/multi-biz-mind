@@ -28,10 +28,12 @@ export function briefingData(db: DB) {
     const tx = mes.filter((t) => t.companyId === c.id);
     const e = tx.filter((t) => t.type === "in").reduce((s, t) => s + t.amount, 0);
     const s = tx.filter((t) => t.type === "out").reduce((s2, t) => s2 + t.amount, 0);
+    const inv = tx.filter((t) => t.type === "invest").reduce((s2, t) => s2 + t.amount, 0);
     return {
       company: c,
       entradas: e,
       saidas: s,
+      investido: inv,
       resultado: e - s,
       pendentes: pend.filter((t) => t.companyId === c.id).length,
       atrasadas: atrasadas.filter((t) => t.companyId === c.id).length,
