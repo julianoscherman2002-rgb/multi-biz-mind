@@ -262,7 +262,7 @@ function NovoLancamento({ onAdd }: { onAdd: (t: Omit<Transaction, "id">) => void
   const { companyId } = useWorkspace();
   const [open, setOpen] = useState(false);
   const [empresa, setEmpresa] = useState(companyId === "all" ? db.companies[0]!.id : companyId);
-  const [tipo, setTipo] = useState<"in" | "out">("in");
+  const [tipo, setTipo] = useState<"in" | "out" | "invest">("in");
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState("");
   const [valor, setValor] = useState("");
@@ -283,7 +283,7 @@ function NovoLancamento({ onAdd }: { onAdd: (t: Omit<Transaction, "id">) => void
       accountId,
       date: data,
       description: descricao,
-      category: categoria || (tipo === "in" ? "Receita" : "Despesa"),
+      category: categoria || (tipo === "in" ? "Receita" : tipo === "invest" ? "Aplicação" : "Despesa"),
       type: tipo,
       amount: Math.abs(amount),
     });
@@ -345,13 +345,14 @@ function NovoLancamento({ onAdd }: { onAdd: (t: Omit<Transaction, "id">) => void
           </div>
           <div className="grid gap-2">
             <Label>Tipo</Label>
-            <Select value={tipo} onValueChange={(v) => setTipo(v as "in" | "out")}>
+            <Select value={tipo} onValueChange={(v) => setTipo(v as "in" | "out" | "invest")}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="in">Entrada</SelectItem>
                 <SelectItem value="out">Saída</SelectItem>
+                <SelectItem value="invest">Investimento / aplicação</SelectItem>
               </SelectContent>
             </Select>
           </div>
