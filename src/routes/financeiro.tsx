@@ -64,6 +64,7 @@ function Financeiro() {
 
   const entradas = list.filter((t) => t.type === "in").reduce((s, t) => s + t.amount, 0);
   const saidas = list.filter((t) => t.type === "out").reduce((s, t) => s + t.amount, 0);
+  const investido = list.filter((t) => t.type === "invest").reduce((s, t) => s + t.amount, 0);
 
   function handleFile(file: File) {
     const reader = new FileReader();
