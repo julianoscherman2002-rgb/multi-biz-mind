@@ -22,6 +22,7 @@ export function briefingData(db: DB) {
   const mes = db.transactions.filter((t) => monthKey(t.date) === mk);
   const entradas = mes.filter((t) => t.type === "in").reduce((s, t) => s + t.amount, 0);
   const saidas = mes.filter((t) => t.type === "out").reduce((s, t) => s + t.amount, 0);
+  const investido = mes.filter((t) => t.type === "invest").reduce((s, t) => s + t.amount, 0);
 
   const porEmpresa = db.companies.map((c) => {
     const tx = mes.filter((t) => t.companyId === c.id);
