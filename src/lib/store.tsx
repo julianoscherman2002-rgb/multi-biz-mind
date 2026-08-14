@@ -84,62 +84,44 @@ function seed(): DB {
   ];
 
   const accounts: Account[] = [
-    { id: "a1", companyId: "adv", name: "Conta PJ Principal", bank: "Itaú", initialBalance: 18500 },
-    { id: "a2", companyId: "marcas", name: "Conta PJ", bank: "Nubank", initialBalance: 7200 },
-    { id: "a3", companyId: "varejo", name: "Conta Operacional", bank: "Mercado Pago", initialBalance: 24300 },
+    { id: "a1", companyId: "adv", name: "Conta PJ Principal", bank: "Itaú", initialBalance: 0 },
+    { id: "a2", companyId: "marcas", name: "Conta PJ", bank: "Nubank", initialBalance: 0 },
+    {
+      id: "inter-cc",
+      companyId: "varejo",
+      name: "Conta Corrente 516447238",
+      bank: "Banco Inter",
+      initialBalance: INTER_CHECKING_INITIAL,
+    },
+    {
+      id: "inter-pj",
+      companyId: "varejo",
+      name: "Conta PJ 549605118",
+      bank: "Banco Inter",
+      initialBalance: INTER_PJ_INITIAL,
+    },
   ];
 
-  const cats: Record<string, { in: string[]; out: string[] }> = {
-    adv: {
-      in: ["Honorários", "Consultoria", "Êxito"],
-      out: ["Folha", "Aluguel", "Custas processuais", "Software"],
-    },
-    marcas: {
-      in: ["Registro INPI", "Renovação", "Consultoria"],
-      out: ["Taxas INPI", "Marketing", "Folha"],
-    },
-    varejo: {
-      in: ["Vendas ML", "Vendas diretas"],
-      out: ["Compra de estoque", "Tarifas ML", "Frete", "Anúncios"],
-    },
-  };
+  const fromStatement = (list: RawTx[], accountId: string): Transaction[] =>
+    list.map((t) => {
+      const { type, amount } = resolveDirection(t.description, t.amount);
+      return {
+        id: uid(),
+        companyId: "varejo",
+        accountId,
+        date: t.date,
+        description: t.description,
+        category: t.category,
+        type,
+        amount,
+      };
+    });
 
-  const transactions: Transaction[] = [];
-  const accById: Record<string, string> = { adv: "a1", marcas: "a2", varejo: "a3" };
-  const scale: Record<string, number> = { adv: 1, marcas: 0.55, varejo: 1.6 };
+  const transactions: Transaction[] = [
+    ...fromStatement(INTER_CHECKING_TX, "inter-cc"),
+    ...fromStatement(INTER_PJ_TX, "inter-pj"),
+  ];
 
-  for (let d = 180; d >= 0; d -= 1) {
-    const date = isoDaysAgo(d);
-    for (const c of companies) {
-      const s = scale[c.id] ?? 1;
-      if (d % 3 === 0) {
-        const list = cats[c.id]!.in;
-        transactions.push({
-          id: uid(),
-          companyId: c.id,
-          accountId: accById[c.id]!,
-          date,
-          description: list[d % list.length]!,
-          category: list[d % list.length]!,
-          type: "in",
-          amount: Math.round((1200 + ((d * 137) % 4200)) * s),
-        });
-      }
-      if (d % 4 === 0) {
-        const list = cats[c.id]!.out;
-        transactions.push({
-          id: uid(),
-          companyId: c.id,
-          accountId: accById[c.id]!,
-          date,
-          description: list[d % list.length]!,
-          category: list[d % list.length]!,
-          type: "out",
-          amount: Math.round((700 + ((d * 91) % 2600)) * s),
-        });
-      }
-    }
-  }
 
   const tasks: Task[] = [
     { id: uid(), companyId: "adv", title: "Protocolar petição inicial — caso Silva", priority: "alta", status: "todo", due: isoDaysAgo(-2) },
