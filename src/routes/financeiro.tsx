@@ -64,6 +64,7 @@ function Financeiro() {
 
   const entradas = list.filter((t) => t.type === "in").reduce((s, t) => s + t.amount, 0);
   const saidas = list.filter((t) => t.type === "out").reduce((s, t) => s + t.amount, 0);
+  const investido = list.filter((t) => t.type === "invest").reduce((s, t) => s + t.amount, 0);
 
   function handleFile(file: File) {
     const reader = new FileReader();
@@ -143,9 +144,10 @@ function Financeiro() {
         }
       />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Entradas" value={brlExact(entradas)} color="var(--color-positive)" />
         <Stat label="Saídas" value={brlExact(saidas)} color="var(--color-negative)" />
+        <Stat label="Investimentos" value={brlExact(investido)} />
         <Stat label="Resultado" value={brlExact(entradas - saidas)} />
       </div>
 
@@ -198,10 +200,15 @@ function Financeiro() {
                     <td
                       className="whitespace-nowrap px-5 py-2.5 text-right font-medium tabular-nums"
                       style={{
-                        color: t.type === "in" ? "var(--color-positive)" : "var(--color-negative)",
+                        color:
+                          t.type === "in"
+                            ? "var(--color-positive)"
+                            : t.type === "invest"
+                              ? "var(--color-muted-foreground)"
+                              : "var(--color-negative)",
                       }}
                     >
-                      {t.type === "in" ? "+" : "−"} {brlExact(t.amount)}
+                      {t.type === "in" ? "+" : t.type === "invest" ? "↔" : "−"} {brlExact(t.amount)}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <button
@@ -220,7 +227,7 @@ function Financeiro() {
         </div>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
-        Aceita CSV (<code>data;descrição;valor</code>) e OFX do banco. Valores negativos viram saídas — exceto lançamentos da Amazon, que entram como receita.
+        Aceita CSV (<code>data;descrição;valor</code>) e OFX do banco. Valores negativos viram saídas — exceto lançamentos da Amazon, que entram como receita, e aplicações/CDB, que são classificados como investimento (saem da conta, mas não contam como despesa).
       </p>
     </>
   );
@@ -255,7 +262,7 @@ function NovoLancamento({ onAdd }: { onAdd: (t: Omit<Transaction, "id">) => void
   const { companyId } = useWorkspace();
   const [open, setOpen] = useState(false);
   const [empresa, setEmpresa] = useState(companyId === "all" ? db.companies[0]!.id : companyId);
-  const [tipo, setTipo] = useState<"in" | "out">("in");
+  const [tipo, setTipo] = useState<"in" | "out" | "invest">("in");
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState("");
   const [valor, setValor] = useState("");
@@ -276,7 +283,7 @@ function NovoLancamento({ onAdd }: { onAdd: (t: Omit<Transaction, "id">) => void
       accountId,
       date: data,
       description: descricao,
-      category: categoria || (tipo === "in" ? "Receita" : "Despesa"),
+      category: categoria || (tipo === "in" ? "Receita" : tipo === "invest" ? "Aplicação" : "Despesa"),
       type: tipo,
       amount: Math.abs(amount),
     });
@@ -338,13 +345,14 @@ function NovoLancamento({ onAdd }: { onAdd: (t: Omit<Transaction, "id">) => void
           </div>
           <div className="grid gap-2">
             <Label>Tipo</Label>
-            <Select value={tipo} onValueChange={(v) => setTipo(v as "in" | "out")}>
+            <Select value={tipo} onValueChange={(v) => setTipo(v as "in" | "out" | "invest")}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="in">Entrada</SelectItem>
                 <SelectItem value="out">Saída</SelectItem>
+                <SelectItem value="invest">Investimento / aplicação</SelectItem>
               </SelectContent>
             </Select>
           </div>

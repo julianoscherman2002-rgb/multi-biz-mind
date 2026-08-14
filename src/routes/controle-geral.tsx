@@ -77,9 +77,10 @@ function ControleGeral() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Kpi label="Entradas do mês" value={brl(b.entradas)} icon={<TrendingUp className="size-4" />} />
         <Kpi label="Saídas do mês" value={brl(b.saidas)} icon={<TrendingDown className="size-4" />} />
+        <Kpi label="Investido no mês" value={brl(b.investido)} icon={<Wallet className="size-4" />} />
         <Kpi
           label="Resultado do mês"
           value={brl(b.resultado)}
@@ -118,6 +119,7 @@ function ControleGeral() {
               </div>
               <dl className="mt-3 space-y-1 text-sm">
                 <Linha k="Resultado do mês" v={brl(p.resultado)} />
+                {p.investido > 0 && <Linha k="Investido no mês" v={brl(p.investido)} />}
                 <Linha k="Saldo em contas" v={brl(p.saldo)} />
                 <Linha k="Tarefas pendentes" v={`${p.pendentes} (${p.atrasadas} atrasadas)`} />
               </dl>

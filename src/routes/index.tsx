@@ -15,7 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowDownRight, ArrowUpRight, TrendingUp, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, PiggyBank, TrendingUp, Wallet } from "lucide-react";
 import { AppShell, PageHeader, useWorkspace } from "@/components/AppShell";
 import {
   accountBalance,
@@ -49,7 +49,7 @@ function Dashboard() {
       const k = monthKey(t.date);
       const row = map.get(k) ?? { key: k, entradas: 0, saidas: 0 };
       if (t.type === "in") row.entradas += t.amount;
-      else row.saidas += t.amount;
+      else if (t.type === "out") row.saidas += t.amount;
       map.set(k, row);
     }
     return [...map.values()]
@@ -63,7 +63,7 @@ function Dashboard() {
       const k = weekKey(t.date);
       const row = map.get(k) ?? { key: k, entradas: 0, saidas: 0 };
       if (t.type === "in") row.entradas += t.amount;
-      else row.saidas += t.amount;
+      else if (t.type === "out") row.saidas += t.amount;
       map.set(k, row);
     }
     return [...map.values()]
@@ -75,8 +75,16 @@ function Dashboard() {
   const totals = useMemo(() => {
     const entradas = txs.filter((t) => t.type === "in").reduce((s, t) => s + t.amount, 0);
     const saidas = txs.filter((t) => t.type === "out").reduce((s, t) => s + t.amount, 0);
+    const investido = txs.filter((t) => t.type === "invest").reduce((s, t) => s + t.amount, 0);
     const meses = Math.max(monthly.length, 1);
-    return { entradas, saidas, saldo: entradas - saidas, mediaMensal: (entradas - saidas) / meses, meses };
+    return {
+      entradas,
+      saidas,
+      investido,
+      saldo: entradas - saidas,
+      mediaMensal: (entradas - saidas) / meses,
+      meses,
+    };
   }, [txs, monthly.length]);
 
   const porEmpresa = useMemo(
@@ -120,7 +128,7 @@ function Dashboard() {
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Kpi
           label="Saldo em contas"
           value={brl(saldoContas)}
@@ -140,6 +148,12 @@ function Dashboard() {
           tone="negative"
           icon={<ArrowDownRight className="size-4" />}
           hint={`${totals.meses} meses de histórico`}
+        />
+        <Kpi
+          label="Investimentos (período)"
+          value={brl(totals.investido)}
+          icon={<PiggyBank className="size-4" />}
+          hint="Aplicações — não contam como saída"
         />
         <Kpi
           label="Média mensal (líquido)"

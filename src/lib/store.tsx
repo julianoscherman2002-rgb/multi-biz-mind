@@ -11,6 +11,7 @@ import {
   INTER_CHECKING_TX,
   INTER_PJ_INITIAL,
   INTER_PJ_TX,
+  isInvestment,
   resolveDirection,
   type RawTx,
 } from "./statements";
@@ -40,7 +41,7 @@ export type Transaction = {
   date: string; // yyyy-mm-dd
   description: string;
   category: string;
-  type: "in" | "out";
+  type: "in" | "out" | "invest";
   amount: number;
 };
 
@@ -181,7 +182,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setDbState(JSON.parse(raw) as DB);
+      if (raw) {
+        const parsed = JSON.parse(raw) as DB;
+        // migração: aplicações deixam de ser saída e passam a ser investimento
+        parsed.transactions = parsed.transactions.map((t) =>
+          t.type === "out" && isInvestment(t.description) ? { ...t, type: "invest" as const } : t,
+        );
+        setDbState(parsed);
+      }
     } catch {
       /* ignore */
     }
