@@ -227,7 +227,7 @@ function Financeiro() {
         </div>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
-        Aceita CSV (<code>data;descrição;valor</code>) e OFX do banco. Valores negativos viram saídas — exceto lançamentos da Amazon, que entram como receita.
+        Aceita CSV (<code>data;descrição;valor</code>) e OFX do banco. Valores negativos viram saídas — exceto lançamentos da Amazon, que entram como receita, e aplicações/CDB, que são classificados como investimento (saem da conta, mas não contam como despesa).
       </p>
     </>
   );
