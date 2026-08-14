@@ -15,12 +15,12 @@ export function isAmazonCredit(description: string) {
 /** Aplicações/CDB não são despesa: viram investimento. */
 export function isInvestment(description: string) {
   const d = description.toLowerCase();
-  return /aplica[cç][aã]o|cdb|investimento|resgate|tesouro/.test(d);
+  return /aplica[cç][aã]o|cdb|investimento|tesouro/.test(d);
 }
 
 /** Aplica a regra de conversão e devolve tipo + valor absoluto. */
 export function resolveDirection(description: string, amount: number) {
-  const type: "in" | "out" | "invest" = isInvestment(description)
+  const type: "in" | "out" | "invest" = isInvestment(description) && amount < 0
     ? "invest"
     : amount >= 0 || isAmazonCredit(description)
       ? "in"
