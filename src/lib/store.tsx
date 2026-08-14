@@ -67,7 +67,8 @@ export type DB = {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-const KEY = "gestao-multi-empresas-v1";
+const KEY = "gestao-multi-empresas-v2";
+
 
 function isoDaysAgo(days: number) {
   const d = new Date();
