@@ -128,7 +128,7 @@ function Dashboard() {
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Kpi
           label="Saldo em contas"
           value={brl(saldoContas)}
@@ -148,6 +148,12 @@ function Dashboard() {
           tone="negative"
           icon={<ArrowDownRight className="size-4" />}
           hint={`${totals.meses} meses de histórico`}
+        />
+        <Kpi
+          label="Investimentos (período)"
+          value={brl(totals.investido)}
+          icon={<PiggyBank className="size-4" />}
+          hint="Aplicações — não contam como saída"
         />
         <Kpi
           label="Média mensal (líquido)"
