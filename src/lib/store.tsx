@@ -40,7 +40,7 @@ export type Transaction = {
   date: string; // yyyy-mm-dd
   description: string;
   category: string;
-  type: "in" | "out";
+  type: "in" | "out" | "invest";
   amount: number;
 };
 
