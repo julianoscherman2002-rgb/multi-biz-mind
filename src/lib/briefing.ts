@@ -71,7 +71,7 @@ export function contextForAI(db: DB) {
 
   return [
     `Data de hoje: ${b.today}`,
-    `Mês atual — entradas ${brl(b.entradas)}, saídas ${brl(b.saidas)}, resultado ${brl(b.resultado)}.`,
+    `Mês atual — entradas ${brl(b.entradas)}, saídas ${brl(b.saidas)}, resultado ${brl(b.resultado)}, investimentos/aplicações ${brl(b.investido)} (não são despesa).`,
     "Por empresa (mês atual):",
     ...b.porEmpresa.map(
       (p) =>
