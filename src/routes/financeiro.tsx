@@ -4,6 +4,7 @@ import { Upload, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, PageHeader, useWorkspace } from "@/components/AppShell";
 import { brlExact, monthKey, monthLabel, useStore, type Transaction } from "@/lib/store";
+import { parseOfx, resolveDirection, toRaw, type RawTx } from "@/lib/statements";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -126,16 +127,16 @@ function Financeiro() {
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,.ofx,text/csv"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) handleCsv(f);
+                if (f) handleFile(f);
                 e.target.value = "";
               }}
             />
             <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="size-4" /> Importar CSV
+              <Upload className="size-4" /> Importar CSV/OFX
             </Button>
             <NovoLancamento onAdd={addTransaction} />
           </div>
@@ -219,7 +220,7 @@ function Financeiro() {
         </div>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
-        Formato do CSV: <code>data;descrição;valor</code> — valores negativos viram saídas.
+        Aceita CSV (<code>data;descrição;valor</code>) e OFX do banco. Valores negativos viram saídas — exceto lançamentos da Amazon, que entram como receita.
       </p>
     </>
   );
