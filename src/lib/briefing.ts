@@ -43,7 +43,18 @@ export function briefingData(db: DB) {
     };
   });
 
-  return { today, atrasadas, hoje, semana, semPrazo, entradas, saidas, resultado: entradas - saidas, porEmpresa };
+  return {
+    today,
+    atrasadas,
+    hoje,
+    semana,
+    semPrazo,
+    entradas,
+    saidas,
+    investido,
+    resultado: entradas - saidas,
+    porEmpresa,
+  };
 }
 
 /** Resumo textual dos dados, usado como contexto para a IA. */
