@@ -118,6 +118,7 @@ function ControleGeral() {
               </div>
               <dl className="mt-3 space-y-1 text-sm">
                 <Linha k="Resultado do mês" v={brl(p.resultado)} />
+                {p.investido > 0 && <Linha k="Investido no mês" v={brl(p.investido)} />}
                 <Linha k="Saldo em contas" v={brl(p.saldo)} />
                 <Linha k="Tarefas pendentes" v={`${p.pendentes} (${p.atrasadas} atrasadas)`} />
               </dl>
